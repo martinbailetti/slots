@@ -7,12 +7,17 @@ export default class Reel extends UserComponent {
     this.params = params;
     this.imageSize = this.params.size;
     this.tweenVal = 0;
+    this.tweenMainDuration = 3000;
+    this.tweenBounceDuration=500;
+    this.tweenAccelerateDuration=500;
     this.gameObject = gameObject;
     this.tweenObject = {
       val: 0,
     };
     this.boing = null;
     this.startSound = null;
+    this.tweenAccelerateVal = this.imageSize*1;
+    this.spins = 30;
     this.containerMain = null;
     this.containerMainImgs = null;
     this.containerClone = null;
@@ -38,6 +43,10 @@ export default class Reel extends UserComponent {
     this.boing = this.scene.sound.add("boing", { loop: false });
     this.startSound = this.scene.sound.add("start", { loop: false });
 
+    this._displayReel();
+  }
+
+  _displayReel = () => {
     this.containerMain = this.scene.add.container(0, 0);
     this.containerClone = this.scene.add.container(
       0,
@@ -96,9 +105,6 @@ export default class Reel extends UserComponent {
       }
     );
 
-    this.tweenVal =
-      this.imageSize * this.params.symbols.length * 4 + this.params.yBounce;
-
     // CREATE MASK
     const shape = this.scene.make.graphics();
 
@@ -111,56 +117,65 @@ export default class Reel extends UserComponent {
     );
     const mask = shape.createGeometryMask();
     this.gameObject.setMask(mask);
-  }
+  };
 
-  startSpin = (delay=0) => {
-    setTimeout(() => {
-      const tween = this.scene.tweens.add({
-        targets: this.tweenObject,
-        val: this.tweenVal,
-        ease: "Linear",
-        duration: 3000,
-        onUpdate: (tween, target) => {
-          this.containerMain.y =
-            target.val % (this.params.symbols.length * this.imageSize);
-          this.containerClone.y =
-            this.containerMain.y - this.params.symbols.length * this.imageSize;
+  startSpin = (delay = 0) => {
 
-          if (
-            this.tweenVal - target.val <=
-            this.params.symbols.length * this.imageSize + this.params.yBounce
-          ) {
-            if (this.tweenVal - target.val > this.params.yBounce) {
-              this.containerWinner.y = this.containerClone.y;
-              // this.containerClone.alpha = 0;
-              for (let i = 0; i < this.params.winnerSymbols.length; i++) {
-                this.containerCloneImgs[i].alpha = 0;
-              }
-            } else {
-              this.containerWinner.y = this.containerMain.y;
-              //this.containerMain.alpha = 0;
-              for (let i = 0; i < this.params.winnerSymbols.length; i++) {
-                this.containerMainImgs[i].alpha = 0;
-              }
-              //  this.containerClone.alpha = 1;
-              this.containerCloneImgs.forEach((element) => {
-                element.alpha = 1;
-              });
+    this.tweenVal =
+      this.imageSize * this.params.symbols.length * this.spins +
+      this.params.yBounce;
+
+
+    setTimeout(this.tweenAccelerate, delay);
+
+  };
+
+  tweenMain = () => {
+    const tween = this.scene.tweens.add({
+      targets: this.tweenObject,
+      val: this.tweenVal,
+      ease: "Linear",
+      duration: this.tweenMainDuration,
+      onUpdate: (tween, target) => {
+        this.containerMain.y =
+          target.val % (this.params.symbols.length * this.imageSize);
+        this.containerClone.y =
+          this.containerMain.y - this.params.symbols.length * this.imageSize;
+
+        if (
+          this.tweenVal - target.val <=
+          this.params.symbols.length * this.imageSize + this.params.yBounce
+        ) {
+          if (this.tweenVal - target.val > this.params.yBounce) {
+            this.containerWinner.y = this.containerClone.y;
+            // this.containerClone.alpha = 0;
+            for (let i = 0; i < this.params.winnerSymbols.length; i++) {
+              this.containerCloneImgs[i].alpha = 0;
             }
+          } else {
+            this.containerWinner.y = this.containerMain.y;
+            //this.containerMain.alpha = 0;
+            for (let i = 0; i < this.params.winnerSymbols.length; i++) {
+              this.containerMainImgs[i].alpha = 0;
+            }
+            //  this.containerClone.alpha = 1;
+            this.containerCloneImgs.forEach((element) => {
+              element.alpha = 1;
+            });
           }
-        },
-      });
-      tween.on("complete", () => {
-        console.log("end");
-        this.containerWinner.y = this.containerMain.y;
-        this.boing.play();
-        this.tweenBounce();
-      });
-      tween.on("start", () => {
-        console.log("start");
-        this.startSound.play();
-      });
-    }, delay);
+        }
+      },
+    });
+    tween.on("complete", () => {
+      console.log("end");
+      this.containerWinner.y = this.containerMain.y;
+      this.boing.play();
+      this.tweenBounce();
+    });
+    tween.on("start", () => {
+      console.log("start");
+      this.startSound.play();
+    });
   };
 
   tweenBounce = () => {
@@ -168,7 +183,7 @@ export default class Reel extends UserComponent {
       targets: this.tweenObject,
       val: this.tweenVal - this.params.yBounce,
       ease: "Bounce.Out",
-      duration: 500,
+      duration: this.tweenBounceDuration,
       onUpdate: (tween, target) => {
         this.containerMain.y =
           target.val % (this.params.symbols.length * this.imageSize);
@@ -194,42 +209,49 @@ export default class Reel extends UserComponent {
 
   tweenAccelerate = () => {
     const tween = this.scene.tweens.add({
-      targets: this.gameObject,
-      y: this.gameObject.y + this.imageSize * 2,
+      targets: this.tweenObject,
+      val: this.tweenAccelerateVal,
       ease: "Expo.easeIn",
-      duration: 1000,
+      duration: this.tweenAccelerateDuration,
+      onUpdate: (tween, target) => {
+        this.containerMain.y =
+          target.val % (this.params.symbols.length * this.imageSize);
+        this.containerClone.y =
+          this.containerMain.y - this.params.symbols.length * this.imageSize;
+
+      },
     });
+    
     tween.on("complete", () => {
       console.log("end");
-      this.tweenLinear();
-    });
-  };
-  tweenLinear = () => {
-    const tween = this.scene.tweens.add({
-      targets: this.gameObject,
-      y: -this.imageSize * 5,
-      ease: "Linear",
-      duration: 1000,
-    });
-    tween.on("complete", () => {
-      console.log("end");
-      this.tweenDecelerate();
-    });
-  };
-  tweenDecelerate = () => {
-    const tween = this.scene.tweens.add({
-      targets: this.gameObject,
-      y: 0,
-      ease: "Quad.easeOut",
-      duration: 1000,
-    });
-    tween.on("complete", () => {
-      console.log("end");
+      this.tweenMain();
     });
   };
 
-  update(time, delta) {
-  }
+
+
+  tweenDecelerate = () => {
+    const tween = this.scene.tweens.add({
+      targets: this.tweenObject,
+      val: this.tweenDecelerateVal,
+      ease: "Expo.easeIn",
+      duration: this.tweenDecelerateDuration,
+      onUpdate: (tween, target) => {
+        this.containerMain.y =
+          target.val % (this.params.symbols.length * this.imageSize);
+        this.containerClone.y =
+          this.containerMain.y - this.params.symbols.length * this.imageSize;
+
+      },
+    });
+    
+    tween.on("complete", () => {
+      console.log("end");
+      this.tweenMain();
+    });
+  };
+
+  update(time, delta) {}
 
   /* END-USER-CODE */
 }
