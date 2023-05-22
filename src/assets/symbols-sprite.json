@@ -1,0 +1,44 @@
+{
+  "frames": [
+    {
+      "filename": "apple",
+      "frame": { "x": 1800, "y": 0, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "banana",
+      "frame": { "x": 0, "y": 0, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "blueberries",
+      "frame": { "x": 600, "y": 0, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "cherry",
+      "frame": { "x": 0, "y": 600, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "coconut",
+      "frame": { "x": 600, "y": 600, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "grapes",
+      "frame": { "x": 1200, "y": 0, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "lemon",
+      "frame": { "x": 1200, "y": 600, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "orange",
+      "frame": { "x": 0, "y": 1200, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "strawberry",
+      "frame": { "x": 600, "y": 1200, "w": 600, "h": 600 }
+    },
+    {
+      "filename": "watermelon",
+      "frame": { "x": 1200, "y": 1200, "w": 600, "h": 600 }
+    }
+  ]
+}

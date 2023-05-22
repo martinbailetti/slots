@@ -1,0 +1,43 @@
+html,
+body {
+  margin: 0 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: url("src/assets/backgrounds/bg.png");
+}
+
+.container {
+  margin: 0px auto 0px auto;
+  max-width: 450px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.landscape-only-layer {
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  display: none;
+}
+
+@media only screen and (hover: none) and (pointer: coarse) and (orientation: landscape) {
+
+  .landscape-only-layer {
+    display: flex;
+  }
+
+}

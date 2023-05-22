@@ -1,0 +1,63 @@
+{
+    "symbols": {
+        "files": [
+            {
+                "type": "image",
+                "key": "apple",
+                "url": "/src/assets/symbols/apple-min.png"
+            },
+            {
+                "type": "image",
+                "key": "banana",
+                "url": "/src/assets/symbols/banana-min.png"
+            },
+            {
+                "type": "image",
+                "key": "blueberries",
+                "url": "/src/assets/symbols/blueberries-min.png"
+            },
+            {
+                "type": "image",
+                "key": "cherry",
+                "url": "/src/assets/symbols/cherry-min.png"
+            },
+            {
+                "type": "image",
+                "key": "coconut",
+                "url": "/src/assets/symbols/coconut-min.png"
+            },
+            {
+                "type": "image",
+                "key": "grapes",
+                "url": "/src/assets/symbols/grapes-min.png"
+            },
+            {
+                "type": "image",
+                "key": "lemon",
+                "url": "/src/assets/symbols/lemon-min.png"
+            },
+            {
+                "type": "image",
+                "key": "orange",
+                "url": "/src/assets/symbols/orange-min.png"
+            },
+            {
+                "type": "image",
+                "key": "strawberry",
+                "url": "/src/assets/symbols/strawberry-min.png"
+            },
+            {
+                "type": "image",
+                "key": "watermelon",
+                "url": "/src/assets/symbols/watermelon-min.png"
+            }
+        ]
+    },
+    "meta": {
+        "generated": "1401380327373",
+        "app": "Phaser 3 Asset Packer",
+        "url": "https://phaser.io",
+        "version": "1.0",
+        "copyright": "Photon Storm Ltd. 2018"
+    }
+}

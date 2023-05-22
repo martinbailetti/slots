@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    html,
+    body {
+      margin: 0 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      background: url("src/assets/backgrounds/bg.png");
+    }
+
+    .container {
+      margin: 0px auto 0px auto;
+      max-width: 600px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .landscape-only-layer {
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      display: none;
+    }
+
+    @media only screen and (max-height: 450px) and (orientation: landscape) {
+
+      .landscape-only-layer {
+        display: flex;
+      }
+
+    }
+
+    /*     @media only screen and (hover: none) and (pointer: coarse) and (orientation: landscape) {
+
+      .landscape-only-layer {
+        display: flex;
+      }
+
+    } */
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div id="phaser-example"></div>
+  </div>
+  <div class="landscape-only-layer" id="landscape-only-layer"><img src="src/assets/images/turn-mobile.jpg" /></div>
+</body>
+
+</html>
