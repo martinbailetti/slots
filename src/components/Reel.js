@@ -12,6 +12,7 @@ export default class Reel extends UserComponent {
       val: 0,
     };
     this.boing = null;
+    this.startSound = null;
     this.containerMain = null;
     this.containerMainImgs = null;
     this.containerClone = null;
@@ -35,7 +36,7 @@ export default class Reel extends UserComponent {
     const { width, height } = this.scene.sys.game.canvas;
 
     this.boing = this.scene.sound.add("boing", { loop: false });
-
+    this.startSound = this.scene.sound.add("start", { loop: false });
 
     this.containerMain = this.scene.add.container(0, 0);
     this.containerClone = this.scene.add.container(
@@ -98,7 +99,6 @@ export default class Reel extends UserComponent {
     this.tweenVal =
       this.imageSize * this.params.symbols.length * 4 + this.params.yBounce;
 
-  
     // CREATE MASK
     const shape = this.scene.make.graphics();
 
@@ -113,52 +113,55 @@ export default class Reel extends UserComponent {
     this.gameObject.setMask(mask);
   }
 
-  startSpin = ()=> {
+  startSpin = (delay=0) => {
+    setTimeout(() => {
+      const tween = this.scene.tweens.add({
+        targets: this.tweenObject,
+        val: this.tweenVal,
+        ease: "Linear",
+        duration: 3000,
+        onUpdate: (tween, target) => {
+          this.containerMain.y =
+            target.val % (this.params.symbols.length * this.imageSize);
+          this.containerClone.y =
+            this.containerMain.y - this.params.symbols.length * this.imageSize;
 
-
-    const tween = this.scene.tweens.add({
-      targets: this.tweenObject,
-      val: this.tweenVal,
-      ease: "Linear",
-      duration: 3000,
-      onUpdate: (tween, target) => {
-        this.containerMain.y =
-          target.val % (this.params.symbols.length * this.imageSize);
-        this.containerClone.y =
-          this.containerMain.y - this.params.symbols.length * this.imageSize;
-
-        if (
-          this.tweenVal - target.val <=
-          this.params.symbols.length * this.imageSize + this.params.yBounce
-        ) {
-          if (this.tweenVal - target.val > this.params.yBounce) {
-            this.containerWinner.y = this.containerClone.y;
-            // this.containerClone.alpha = 0;
-            for (let i = 0; i < this.params.winnerSymbols.length; i++) {
-              this.containerCloneImgs[i].alpha = 0;
+          if (
+            this.tweenVal - target.val <=
+            this.params.symbols.length * this.imageSize + this.params.yBounce
+          ) {
+            if (this.tweenVal - target.val > this.params.yBounce) {
+              this.containerWinner.y = this.containerClone.y;
+              // this.containerClone.alpha = 0;
+              for (let i = 0; i < this.params.winnerSymbols.length; i++) {
+                this.containerCloneImgs[i].alpha = 0;
+              }
+            } else {
+              this.containerWinner.y = this.containerMain.y;
+              //this.containerMain.alpha = 0;
+              for (let i = 0; i < this.params.winnerSymbols.length; i++) {
+                this.containerMainImgs[i].alpha = 0;
+              }
+              //  this.containerClone.alpha = 1;
+              this.containerCloneImgs.forEach((element) => {
+                element.alpha = 1;
+              });
             }
-          } else {
-            this.containerWinner.y = this.containerMain.y;
-            //this.containerMain.alpha = 0;
-            for (let i = 0; i < this.params.winnerSymbols.length; i++) {
-              this.containerMainImgs[i].alpha = 0;
-            }
-            //  this.containerClone.alpha = 1;
-            this.containerCloneImgs.forEach((element) => {
-              element.alpha = 1;
-            });
           }
-        }
-      },
-    });
-    tween.on("complete", () => {
-      console.log("end");
-      this.containerWinner.y = this.containerMain.y;
-      this.boing.play();
-      this.tweenBounce();
-    });
-
-  }
+        },
+      });
+      tween.on("complete", () => {
+        console.log("end");
+        this.containerWinner.y = this.containerMain.y;
+        this.boing.play();
+        this.tweenBounce();
+      });
+      tween.on("start", () => {
+        console.log("start");
+        this.startSound.play();
+      });
+    }, delay);
+  };
 
   tweenBounce = () => {
     const tween = this.scene.tweens.add({
@@ -225,7 +228,8 @@ export default class Reel extends UserComponent {
     });
   };
 
-  update(time, delta) {}
+  update(time, delta) {
+  }
 
   /* END-USER-CODE */
 }

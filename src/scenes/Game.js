@@ -14,14 +14,11 @@ export default class MainScene extends Phaser.Scene {
     this.x = 20;
     this.y = 20;
 
-
     this.reels = [
       {
         rows: this.rows, // rows shown
-        size: this.imageSize , // image size TODO
-        x: this.x, // x Position of the reel
-        y: this.y, // y Position of the reel
-        yBounce: this.imageSize  / 2, // y distance to do the bounce back
+        size: this.imageSize, // image size TODO
+        yBounce: this.imageSize / 2, // y distance to do the bounce back
         symbols: [
           "apple",
           "lemon",
@@ -30,17 +27,16 @@ export default class MainScene extends Phaser.Scene {
           "cherry",
           "strawberry",
           "coconut",
-          "grapes"
-         
+          "grapes",
         ], // list of symbol names for the reel previously loaded
-        winnerSymbols: ["lemon","orange", "strawberry", "watermelon"], // list of winner symbol names previously loaded
+        winnerSymbols: ["lemon", "orange", "strawberry", "watermelon"], // list of winner symbol names previously loaded
       },
       {
         rows: this.rows, // rows shown
-        size: this.imageSize , // image size TODO
-        x: this.x+this.imageSize, // x Position of the reel
+        size: this.imageSize, // image size TODO
+        x: this.x + this.imageSize, // x Position of the reel
         y: this.y, // y Position of the reel
-        yBounce: this.imageSize  / 2, // y distance to do the bounce back
+        yBounce: this.imageSize / 2, // y distance to do the bounce back
         symbols: [
           "blueberries",
           "strawberry",
@@ -48,10 +44,9 @@ export default class MainScene extends Phaser.Scene {
           "apple",
           "coconut",
           "banana",
-          "cherry"
-         
+          "cherry",
         ], // list of symbol names for the reel previously loaded
-        winnerSymbols: ["watermelon", "strawberry","orange", "lemon"], // list of winner symbol names previously loaded
+        winnerSymbols: ["watermelon", "strawberry", "orange", "lemon"], // list of winner symbol names previously loaded
       },
     ];
 
@@ -61,17 +56,20 @@ export default class MainScene extends Phaser.Scene {
   /** @returns {void} */
   editorCreate() {
     const container = this.add.container(this.x, this.y);
-  const container2 = this.add.container(this.x+this.imageSize, this.y);
+    const container2 = this.add.container(this.x + this.imageSize, this.y);
 
     const reel = new Reel(container, this.reels[0]);
-   const reel2 = new Reel(container2, this.reels[1]);
+    const reel2 = new Reel(container2, this.reels[1]);
 
     this.scale.on("resize", this.resize, this);
 
+    const button = new Button(200, 400, "Start Game", this, () => {
+      this.spinningLoop.play();
+      reel.startSpin();
+      reel2.startSpin(500);
+    });
 
-    const button = new Button(200, 400, 'Start Game', this, () => {reel.startSpin();reel2.startSpin();});
-
-
+    this.spinningLoop = this.sound.add("spinningLoop", { loop: true, volume: 0.5 });
     this.events.emit("scene-awake");
   }
 
@@ -88,6 +86,8 @@ export default class MainScene extends Phaser.Scene {
 
   preload() {
     this.load.audio("boing", ["src/assets/audio/boing.mp3"]);
+    this.load.audio("start", ["src/assets/audio/giggle5.mp3"]);
+    this.load.audio("spinningLoop", ["src/assets/audio/bassloop.mp3"]);
     this.load.atlas(
       "symbols",
       "src/assets/symbols-sprite.png",

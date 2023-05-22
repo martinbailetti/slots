@@ -3,7 +3,7 @@ export default class Button {
         const button = scene.add.text(x, y, label)
             .setOrigin(0.5)
             .setPadding(10)
-            .setStyle({ backgroundColor: '#FFF' })
+            .setStyle({ backgroundColor: "#0000FF" })
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => callback())
             .on('pointerover', () => button.setStyle({ fill: '#f39c12' }))
