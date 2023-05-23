@@ -68,6 +68,13 @@ export default class MainScene extends Phaser.Scene {
   /** @returns {void} */
   editorCreate() {
     const { width, height } = this.sys.game.canvas;
+
+
+
+    var background = this.add.tileSprite(width/2, height/2, width, height, "background");
+
+
+
     this.imageSize = width / 4;
 
     const container = this.add.container(this.reelsX, this.reelsY);
@@ -131,6 +138,7 @@ export default class MainScene extends Phaser.Scene {
   }
 
   preload() {
+    this.load.image("background", "src/assets/images/bg.jpg");
     this.load.audio("boing", ["src/assets/audio/boing.mp3"]);
     this.load.audio("start", ["src/assets/audio/giggle5.mp3"]);
     this.load.audio("spinningLoop", ["src/assets/audio/bassloop.mp3"]);

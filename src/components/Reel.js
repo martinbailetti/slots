@@ -8,7 +8,7 @@ export default class Reel extends UserComponent {
     this.params = params;
     this.tweenMainDuration = 5000;
     this.tweenBounceDuration = 500;
-    this.tweenAccelerateDuration = 3000;
+    this.tweenAccelerateDuration = 500;
     this.tweenDecelerateDuration = 700;
     this.gameObject = gameObject;
     this.tweenObject = {
@@ -17,7 +17,7 @@ export default class Reel extends UserComponent {
     this.boing = null;
     this.startSound = null;
     this.tweenAccelerateVal = this.scene.imageSize * 4;
-    this.spins = 3;
+    this.spins = 30;
     this.status = "stop";
     this.containerMain = null;
     this.containerMainImgs = null;
