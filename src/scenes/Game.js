@@ -218,7 +218,18 @@ export default class MainScene extends Phaser.Scene {
     this.backgroundCenter.width = this.layout.reelsRect.width;
     this.backgroundCenter.height = this.layout.reelsRect.height;
 
+    this.reels.forEach((reel, index) => {
+      let spaceX = index > 0 ? this.layout.reelsRect.spaceX * index : 0;
 
+      if (this.reelsDisplay === "space-evenly") {
+        spaceX = this.layout.reelsRect.spaceX * (index + 1);
+      } else if (this.reelsDisplay === "space-around") {
+        spaceX = this.layout.reelsRect.spaceX;
+      }
+      console.log("reel, index", reel.x, reel.y,reel, index);
+      reel.setContainerPosition(this.layout.reelsRect.x + this.imageSize * index + spaceX, this.reelsY);
+      reel.resize();
+    });
   
   }
 
