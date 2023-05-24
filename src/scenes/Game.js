@@ -8,15 +8,25 @@ export default class MainScene extends Phaser.Scene {
       key: "MainScene",
     });
 
+    this.background = null;
+    this.backgroundCenter = null;
+    this.reels = [];
     this.imageSize = 0;
     this.rows = 4; // rows to thow
     this.reelsX = 20;
     this.reelsY = 20;
+    this.reelsWidthPercent = 0.8;
+    this.reelsDisplay = "space-evenly"; // space-around space-between space-evenly
     this.reelsSpacing = 0.1;
-    
+    this.layout = {
+      reelsRect: {},
+    };
+
+    this.minBottomSpace = 400;
+
     this.reelsEnded = 0;
 
-    this.reels = [
+    this.reelsConfig = [
       {
         rows: this.rows, // rows shown
         yBounce: 0.5, // y distance to do the bounce back
@@ -46,6 +56,20 @@ export default class MainScene extends Phaser.Scene {
         ], // list of symbol names for the reel previously loaded
         winnerSymbols: ["watermelon", "strawberry", "orange", "lemon"], // list of winner symbol names previously loaded
       },
+      {
+        rows: this.rows, // rows shown
+        yBounce: 0.5, // y distance to do the bounce back
+        symbols: [
+          "blueberries",
+          "strawberry",
+          "lemon",
+          "apple",
+          "coconut",
+          "banana",
+          "cherry",
+        ], // list of symbol names for the reel previously loaded
+        winnerSymbols: ["watermelon", "strawberry", "orange", "lemon"], // list of winner symbol names previously loaded
+      },
     ];
 
     this.status = "ready";
@@ -53,15 +77,41 @@ export default class MainScene extends Phaser.Scene {
 
   reelEnded() {
     this.reelsEnded++;
-    if(this.reelsEnded===this.reels.length){
+    if (this.reelsEnded === this.reelsConfig.length) {
       console.log("reelEnded", this.reelsEnded);
       this.status = "ready";
     }
   }
-  getReelsRect() {
-    return {
-      width: this.reels.length * this.imageSize,
+  prepareLayout() {
+    const { width, height } = this.sys.game.canvas;
+
+    const reelWidth = width * this.reelsWidthPercent;
+    this.imageSize = reelWidth / this.reelsConfig.length;
+
+    const reelHeight = this.rows * this.imageSize;
+
+    if (height - reelHeight < this.minBottomSpace) {
+      this.imageSize = (height - this.minBottomSpace) / this.rows;
+    }
+
+    let spaceX =
+      (reelWidth - this.imageSize * this.reelsConfig.length) /
+      (this.reelsConfig.length - 1);
+
+    if (this.reelsDisplay === "space-evenly") {
+      spaceX =
+        (reelWidth - this.imageSize * this.reelsConfig.length) /
+        (this.reelsConfig.length + 1);
+    } else if (this.reelsDisplay === "space-around") {
+      spaceX = (reelWidth - this.imageSize * this.reelsConfig.length) / 2;
+    }
+
+    this.layout.reelsRect = {
+      x: (width * (1 - this.reelsWidthPercent)) / 2,
+      y: this.reelsY,
+      width: reelWidth,
       height: this.rows * this.imageSize,
+      spaceX: spaceX,
     };
   }
 
@@ -69,53 +119,71 @@ export default class MainScene extends Phaser.Scene {
   editorCreate() {
     const { width, height } = this.sys.game.canvas;
 
-
-
-    var background = this.add.tileSprite(width/2, height/2, width, height, "background");
-
-
-
-    this.imageSize = width / 4;
-
-    const container = this.add.container(this.reelsX, this.reelsY);
-    const container2 = this.add.container(
-      this.reelsY + this.imageSize + this.reelsSpacing * this.imageSize,
-      this.reelsY
+    this.background = this.add.tileSprite(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      "background"
     );
 
-    const reel = new Reel(container, this.reels[0]);
-    const reel2 = new Reel(container2, this.reels[1]);
+    this.prepareLayout();
+
+    this.backgroundCenter = this.add.tileSprite(
+      width / 2,
+      this.layout.reelsRect.height / 2 + this.reelsY,
+      this.layout.reelsRect.width,
+      this.layout.reelsRect.height,
+      "backgroundCenter"
+    );
+
+    this.reels = this.reelsConfig.map((reel, index) => {
+      let spaceX = index > 0 ? this.layout.reelsRect.spaceX * index : 0;
+
+      if (this.reelsDisplay === "space-evenly") {
+        spaceX = this.layout.reelsRect.spaceX * (index + 1);
+      } else if (this.reelsDisplay === "space-around") {
+        spaceX = this.layout.reelsRect.spaceX;
+      }
+
+      const container = this.add.container(
+        this.layout.reelsRect.x + this.imageSize * index + spaceX,
+        this.reelsY
+      );
+
+      return new Reel(container, reel);
+    });
 
     this.scale.on("resize", this.resize, this);
-    const rect = this.getReelsRect();
+
     const button = new Button(
       width / 2,
-      rect.height + this.reelsY + 30,
+      this.layout.reelsRect.height + this.reelsY + 30,
       "Start Spin",
       this,
       () => {
-        if ((this.status === "ready")) {
+        if (this.status === "ready") {
           this.reelsEnded = 0;
           this.status = "spinning";
           this.spinningLoop.play();
-          reel.startSpin();
-          reel2.startSpin(500);
+          this.reels.forEach((reel, index) => {
+            reel.startSpin(500 * index);
+          });
         }
       }
     );
     const buttonStop = new Button(
       width / 2,
-      rect.height + this.reelsY + 70,
+      this.layout.reelsRect.height + this.reelsY + 70,
       "Stop Spin",
       this,
       () => {
-        if ((this.status === "spinning")) {
+        if (this.status === "spinning") {
           this.spinningLoop.stop();
-          reel.stopSpin();
-          reel2.stopSpin(500);
+          this.reels.forEach((reel, index) => {
+            reel.stopSpin(500 * index);
+          });
         }
-
-
       }
     );
 
@@ -135,10 +203,28 @@ export default class MainScene extends Phaser.Scene {
     console.log("baseSize", baseSize);
     console.log("displaySize", displaySize);
     console.log("resolution", resolution);
+    console.log("this.sys.game.canvas", this.sys.game.canvas);
+
+    const { width, height } = this.sys.game.canvas;
+
+    this.prepareLayout();
+    this.background.x = width / 2;
+    this.background.y = height / 2;
+    this.background.width = width;
+    this.background.height = height;
+
+    this.backgroundCenter.x = width / 2;
+    this.backgroundCenter.y = this.layout.reelsRect.height / 2 + this.reelsY;
+    this.backgroundCenter.width = this.layout.reelsRect.width;
+    this.backgroundCenter.height = this.layout.reelsRect.height;
+
+
+  
   }
 
   preload() {
     this.load.image("background", "src/assets/images/bg.jpg");
+    this.load.image("backgroundCenter", "src/assets/images/bg-center.jpg");
     this.load.audio("boing", ["src/assets/audio/boing.mp3"]);
     this.load.audio("start", ["src/assets/audio/giggle5.mp3"]);
     this.load.audio("spinningLoop", ["src/assets/audio/bassloop.mp3"]);
