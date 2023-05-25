@@ -21,6 +21,10 @@ export default class MainScene extends Phaser.Scene {
     this.layout = {
       reelsRect: {},
     };
+    this.buttons = {
+      start: null,
+      stop: null
+    };
 
     this.minBottomSpace = 400;
 
@@ -156,7 +160,7 @@ export default class MainScene extends Phaser.Scene {
 
     this.scale.on("resize", this.resize, this);
 
-    const button = new Button(
+    this.buttons.start = new Button(
       width / 2,
       this.layout.reelsRect.height + this.reelsY + 30,
       "Start Spin",
@@ -172,7 +176,7 @@ export default class MainScene extends Phaser.Scene {
         }
       }
     );
-    const buttonStop = new Button(
+    this.buttons.stop = new Button(
       width / 2,
       this.layout.reelsRect.height + this.reelsY + 70,
       "Stop Spin",
@@ -194,19 +198,6 @@ export default class MainScene extends Phaser.Scene {
     this.events.emit("scene-awake");
 
 
-    const config = {
-      key: 'starAnimation',
-      frames: this.anims.generateFrameNumbers('starSprite', { start: 0, end: 6, first: 0 }),
-      frameRate: 15,
-      repeat: -1
-    };
-
-    this.anims.create(config);
-
-  const coinAnim =  this.add.sprite(200, 600, 'starSprite').play('starAnimation');
-
-  coinAnim.displayWidth=60;
-  coinAnim.displayHeight=60;
   }
 
   create() {
@@ -251,7 +242,7 @@ export default class MainScene extends Phaser.Scene {
   preload() {
 
 
-    this.load.spritesheet('starSprite', 'src/assets/star-sprite-min.png', { frameWidth: 600, frameHeight: 600 });
+    this.load.spritesheet('starSprite', 'src/assets/sprite-coin.png', { frameWidth: 150, frameHeight: 150 });
 
     this.load.image("background", "src/assets/images/bg.jpg");
     this.load.image("backgroundCenter", "src/assets/images/bg-center.jpg");
@@ -260,7 +251,7 @@ export default class MainScene extends Phaser.Scene {
     this.load.audio("spinningLoop", ["src/assets/audio/bassloop.mp3"]);
     this.load.atlas(
       "symbols",
-      "src/assets/symbols2-sprite.png",
+      "src/assets/symbols3-sprite.png",
       symbolsSpriteJson
     );
   }

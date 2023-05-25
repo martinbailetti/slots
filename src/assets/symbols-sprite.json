@@ -2,47 +2,47 @@
   "frames": [
     {
       "filename": "apple",
-      "frame": { "x": 0, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 600, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "banana",
-      "frame": { "x": 600, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 1500, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "blueberries",
-      "frame": { "x": 1200, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 0, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "cherry",
-      "frame": { "x": 1800, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 150, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "coconut",
-      "frame": { "x": 2400, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 300, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "coin",
-      "frame": { "x": 3000, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 450, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "grapes",
-      "frame": { "x": 3600, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 750, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "lemon",
-      "frame": { "x": 4200, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 900, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "orange",
-      "frame": { "x":4800, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x":1050, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "strawberry",
-      "frame": { "x": 5400, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 1200, "y": 0, "w": 150, "h": 150 }
     },
     {
       "filename": "watermelon",
-      "frame": { "x": 6000, "y": 0, "w": 600, "h": 600 }
+      "frame": { "x": 1350, "y": 0, "w": 150, "h": 150 }
     }
   ]
 }

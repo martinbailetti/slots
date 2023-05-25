@@ -18,6 +18,7 @@ export default class Reel extends UserComponent {
     this.startSound = null;
     this.tweenAccelerateVal = this.scene.imageSize * 4;
     this.spins = 40;
+    this.anims = [];
     this.status = "stop";
     this.containerMain = null;
     this.containerMainImgs = null;
@@ -104,6 +105,32 @@ export default class Reel extends UserComponent {
       }
     );
 
+
+
+
+    for (let i = 0; i < this.params.rows; i++) {
+      if (this.params.symbols[i] === "coin") {
+
+        const config = {
+          key: 'starAnimation',
+          frames: this.scene.anims.generateFrameNumbers('starSprite', { start: 0, end: 5, first: 0 }),
+          frameRate: 15,
+          repeat: -1
+        };
+
+        this.scene.anims.create(config);
+
+        this.anims[i] = this.scene.add.sprite(this.scene.imageSize / 2, this.scene.imageSize / 2 + this.scene.imageSize * i, 'starSprite').play('starAnimation');
+        this.anims[i].displayWidth = this.scene.imageSize;
+        this.anims[i].displayHeight = this.scene.imageSize;
+
+        this.gameObject.add(this.anims[i]);
+
+
+
+      }
+    }
+
     // CREATE MASK
     const shape = this.scene.make.graphics();
 
@@ -125,6 +152,8 @@ export default class Reel extends UserComponent {
     this.tweenObject = {
       val: 0,
     };
+
+     this.anims.forEach(elm => elm.destroy());
 
     setTimeout(this._tweenAccelerate, delay);
   };
@@ -157,7 +186,12 @@ export default class Reel extends UserComponent {
       img.displayHeight = this.scene.imageSize;
     });
 
+
+
+
+
     this.gameObject.clearMask(true);
+
     const shape = this.scene.make.graphics();
 
     shape.fillStyle(0xffffff);
@@ -169,6 +203,10 @@ export default class Reel extends UserComponent {
     );
     const mask = shape.createGeometryMask();
     this.gameObject.setMask(mask);
+
+
+
+
   };
 
   _tweenAccelerate = () => {
@@ -263,9 +301,9 @@ export default class Reel extends UserComponent {
     const decelerateVal =
       Math.ceil(
         this.tweenObject.val /
-          (this.scene.imageSize * this.params.symbols.length)
+        (this.scene.imageSize * this.params.symbols.length)
       ) *
-        (this.scene.imageSize * this.params.symbols.length) +
+      (this.scene.imageSize * this.params.symbols.length) +
       this.scene.imageSize * this.params.symbols.length +
       this.params.yBounce * this.scene.imageSize;
     const tween = this.scene.tweens.add({
@@ -286,7 +324,7 @@ export default class Reel extends UserComponent {
         if (
           decelerateVal - target.val <=
           this.params.symbols.length * this.scene.imageSize +
-            this.params.yBounce * this.scene.imageSize
+          this.params.yBounce * this.scene.imageSize
         ) {
           // If the difference between the current and final values is higher the extra bounce y
           if (
@@ -337,7 +375,7 @@ export default class Reel extends UserComponent {
         if (
           finalVal - target.val <=
           this.params.symbols.length * this.scene.imageSize +
-            this.params.yBounce * this.scene.imageSize
+          this.params.yBounce * this.scene.imageSize
         ) {
           if (
             finalVal - target.val >
@@ -358,10 +396,13 @@ export default class Reel extends UserComponent {
       console.log("end");
 
       this.first = false;
+
+
+
       this.scene.reelEnded();
     });
   };
-  update(time, delta) {}
+  update(time, delta) { }
 
   /* END-USER-CODE */
 }
