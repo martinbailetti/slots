@@ -33,42 +33,42 @@ export default class MainScene extends Phaser.Scene {
         symbols: [
           "apple",
           "lemon",
-          "banana",
+          "coin",
           "blueberries",
           "cherry",
           "strawberry",
-          "coconut",
+          "coin",
           "grapes",
         ], // list of symbol names for the reel previously loaded
-        winnerSymbols: ["lemon", "orange", "strawberry", "watermelon"], // list of winner symbol names previously loaded
+        winnerSymbols: ["lemon", "orange", "coin", "watermelon"], // list of winner symbol names previously loaded
       },
       {
         rows: this.rows, // rows shown
         yBounce: 0.5, // y distance to do the bounce back
         symbols: [
           "blueberries",
-          "strawberry",
+          "coin",
           "lemon",
           "apple",
           "coconut",
-          "banana",
+          "coin",
           "cherry",
         ], // list of symbol names for the reel previously loaded
-        winnerSymbols: ["watermelon", "strawberry", "orange", "lemon"], // list of winner symbol names previously loaded
+        winnerSymbols: ["watermelon", "coin", "orange", "lemon"], // list of winner symbol names previously loaded
       },
       {
         rows: this.rows, // rows shown
         yBounce: 0.5, // y distance to do the bounce back
         symbols: [
-          "blueberries",
+          "coin",
           "strawberry",
-          "lemon",
+          "coin",
           "apple",
           "coconut",
           "banana",
           "cherry",
         ], // list of symbol names for the reel previously loaded
-        winnerSymbols: ["watermelon", "strawberry", "orange", "lemon"], // list of winner symbol names previously loaded
+        winnerSymbols: ["coin", "strawberry", "orange", "lemon"], // list of winner symbol names previously loaded
       },
     ];
 
@@ -192,6 +192,21 @@ export default class MainScene extends Phaser.Scene {
       volume: 0.1,
     });
     this.events.emit("scene-awake");
+
+
+    const config = {
+      key: 'starAnimation',
+      frames: this.anims.generateFrameNumbers('starSprite', { start: 0, end: 6, first: 0 }),
+      frameRate: 15,
+      repeat: -1
+    };
+
+    this.anims.create(config);
+
+  const coinAnim =  this.add.sprite(200, 600, 'starSprite').play('starAnimation');
+
+  coinAnim.displayWidth=60;
+  coinAnim.displayHeight=60;
   }
 
   create() {
@@ -226,14 +241,18 @@ export default class MainScene extends Phaser.Scene {
       } else if (this.reelsDisplay === "space-around") {
         spaceX = this.layout.reelsRect.spaceX;
       }
-      console.log("reel, index", reel.x, reel.y,reel, index);
+      console.log("reel, index", reel.x, reel.y, reel, index);
       reel.setContainerPosition(this.layout.reelsRect.x + this.imageSize * index + spaceX, this.reelsY);
       reel.resize();
     });
-  
+
   }
 
   preload() {
+
+
+    this.load.spritesheet('starSprite', 'src/assets/star-sprite-min.png', { frameWidth: 600, frameHeight: 600 });
+
     this.load.image("background", "src/assets/images/bg.jpg");
     this.load.image("backgroundCenter", "src/assets/images/bg-center.jpg");
     this.load.audio("boing", ["src/assets/audio/boing.mp3"]);
@@ -241,7 +260,7 @@ export default class MainScene extends Phaser.Scene {
     this.load.audio("spinningLoop", ["src/assets/audio/bassloop.mp3"]);
     this.load.atlas(
       "symbols",
-      "src/assets/symbols-sprite.png",
+      "src/assets/symbols2-sprite.png",
       symbolsSpriteJson
     );
   }

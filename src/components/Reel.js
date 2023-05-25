@@ -17,7 +17,7 @@ export default class Reel extends UserComponent {
     this.boing = null;
     this.startSound = null;
     this.tweenAccelerateVal = this.scene.imageSize * 4;
-    this.spins = 30;
+    this.spins = 40;
     this.status = "stop";
     this.containerMain = null;
     this.containerMainImgs = null;
