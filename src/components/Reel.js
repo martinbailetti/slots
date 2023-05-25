@@ -6,7 +6,7 @@ export default class Reel extends UserComponent {
 
     this.first = true;
     this.params = params;
-    this.tweenMainDuration = 5000;
+    this.tweenMainDuration = 3000;
     this.tweenBounceDuration = 500;
     this.tweenAccelerateDuration = 500;
     this.tweenDecelerateDuration = 700;
@@ -17,7 +17,7 @@ export default class Reel extends UserComponent {
     this.boing = null;
     this.startSound = null;
     this.tweenAccelerateVal = this.scene.imageSize * 4;
-    this.spins = 40;
+    this.spins = 15;
     this.anims = [];
     this.status = "stop";
     this.containerMain = null;
@@ -71,7 +71,13 @@ export default class Reel extends UserComponent {
       img.displayHeight = this.scene.imageSize;
 
       this.containerMain.add(img);
-
+      console.log(index , this.params.rows);
+      if (index < this.params.rows) {
+        img.setInteractive({ useHandCursor: true })
+          .on("pointerdown", () => console.log("pointerdown", img))
+          .on("pointerover", () => console.log("pointerover", img))
+          .on("pointerout", () => console.log("pointerout", img));
+      }
       return img;
     });
     this.containerCloneImgs = this.params.symbols.map((texture, index) => {
@@ -105,32 +111,7 @@ export default class Reel extends UserComponent {
       }
     );
 
-
-
-
-    for (let i = 0; i < this.params.rows; i++) {
-      if (this.params.symbols[i] === "coin") {
-
-        const config = {
-          key: 'starAnimation',
-          frames: this.scene.anims.generateFrameNumbers('starSprite', { start: 0, end: 5, first: 0 }),
-          frameRate: 15,
-          repeat: -1
-        };
-
-        this.scene.anims.create(config);
-
-        this.anims[i] = this.scene.add.sprite(this.scene.imageSize / 2, this.scene.imageSize / 2 + this.scene.imageSize * i, 'starSprite').play('starAnimation');
-        this.anims[i].displayWidth = this.scene.imageSize;
-        this.anims[i].displayHeight = this.scene.imageSize;
-
-        this.gameObject.add(this.anims[i]);
-
-
-
-      }
-    }
-
+    this._showIdleAnimations();
     // CREATE MASK
     const shape = this.scene.make.graphics();
 
@@ -145,6 +126,43 @@ export default class Reel extends UserComponent {
     this.gameObject.setMask(mask);
   };
 
+  _showIdleAnimations = (winners = false) => {
+    for (let i = 0; i < this.params.rows; i++) {
+      if (
+        (winners && this.params.winnerSymbols[i] === "coin") ||
+        (!winners && this.params.symbols[i] === "coin")
+      ) {
+        const config = {
+          key: "starAnimation",
+          frames: this.scene.anims.generateFrameNumbers("starSprite", {
+            start: 0,
+            end: 5,
+            first: 0,
+            delay: Math.floor(Math.random() * 1000),
+          }),
+          frameRate: 6,
+          repeat: -1,
+        };
+
+        this.scene.anims.create(config);
+
+        this.anims[i] = this.scene.add
+          .sprite(
+            this.scene.imageSize / 2,
+            this.scene.imageSize / 2 + this.scene.imageSize * i,
+            "starSprite"
+          )
+          .play("starAnimation");
+        this.anims[i].displayWidth = this.scene.imageSize;
+        this.anims[i].displayHeight = this.scene.imageSize;
+        /*     this.anims[i].on("animationcomplete", () => {
+          console.log("animationcomplete");
+        }); */
+        this.gameObject.add(this.anims[i]);
+      }
+    }
+  };
+
   startSpin = (delay = 0) => {
     this.containerMain.y = 0;
     this.containerClone.y = -this.params.symbols.length * this.scene.imageSize;
@@ -153,7 +171,7 @@ export default class Reel extends UserComponent {
       val: 0,
     };
 
-     this.anims.forEach(elm => elm.destroy());
+    this.anims.forEach((elm) => elm.destroy());
 
     setTimeout(this._tweenAccelerate, delay);
   };
@@ -186,10 +204,6 @@ export default class Reel extends UserComponent {
       img.displayHeight = this.scene.imageSize;
     });
 
-
-
-
-
     this.gameObject.clearMask(true);
 
     const shape = this.scene.make.graphics();
@@ -203,10 +217,6 @@ export default class Reel extends UserComponent {
     );
     const mask = shape.createGeometryMask();
     this.gameObject.setMask(mask);
-
-
-
-
   };
 
   _tweenAccelerate = () => {
@@ -301,9 +311,9 @@ export default class Reel extends UserComponent {
     const decelerateVal =
       Math.ceil(
         this.tweenObject.val /
-        (this.scene.imageSize * this.params.symbols.length)
+          (this.scene.imageSize * this.params.symbols.length)
       ) *
-      (this.scene.imageSize * this.params.symbols.length) +
+        (this.scene.imageSize * this.params.symbols.length) +
       this.scene.imageSize * this.params.symbols.length +
       this.params.yBounce * this.scene.imageSize;
     const tween = this.scene.tweens.add({
@@ -324,7 +334,7 @@ export default class Reel extends UserComponent {
         if (
           decelerateVal - target.val <=
           this.params.symbols.length * this.scene.imageSize +
-          this.params.yBounce * this.scene.imageSize
+            this.params.yBounce * this.scene.imageSize
         ) {
           // If the difference between the current and final values is higher the extra bounce y
           if (
@@ -375,7 +385,7 @@ export default class Reel extends UserComponent {
         if (
           finalVal - target.val <=
           this.params.symbols.length * this.scene.imageSize +
-          this.params.yBounce * this.scene.imageSize
+            this.params.yBounce * this.scene.imageSize
         ) {
           if (
             finalVal - target.val >
@@ -397,12 +407,53 @@ export default class Reel extends UserComponent {
 
       this.first = false;
 
-
+      this.anims = [];
 
       this.scene.reelEnded();
     });
   };
-  update(time, delta) { }
+
+  showWinnerAnimations = () => {
+    for (let i = 0; i < this.params.rows; i++) {
+      if (this.params.winnerSymbols[i] === "coin") {
+        const config = {
+          key: "starWinnerAnimation",
+          frames: this.scene.anims.generateFrameNumbers("starSprite", {
+            start: 6,
+            end: 11,
+            first: 6,
+          }),
+          frameRate: 15,
+          repeat: 3,
+        };
+
+        this.scene.anims.create(config);
+
+        this.anims[i] = this.scene.add
+          .sprite(
+            this.scene.imageSize / 2,
+            this.scene.imageSize / 2 + this.scene.imageSize * i,
+            "starSprite"
+          )
+          .play("starWinnerAnimation");
+
+        this.containerWinnerImgs[i].alpha = 0;
+
+        this.anims[i].displayWidth = this.scene.imageSize;
+        this.anims[i].displayHeight = this.scene.imageSize;
+
+        const index = i;
+        this.anims[i].on("animationcomplete", () => {
+          console.log("animationcomplete", index);
+          this.containerWinnerImgs[index].alpha = 1;
+          this.anims[index].destroy();
+          this._showIdleAnimations(true);
+        });
+        this.gameObject.add(this.anims[i]);
+      }
+    }
+  };
+  update(time, delta) {}
 
   /* END-USER-CODE */
 }

@@ -1,0 +1,84 @@
+.css-sprite-1
+{
+background:url('css-sprite-combined.png') 0px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-2
+{
+background:url('css-sprite-combined.png') -150px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-3
+{
+background:url('css-sprite-combined.png') -300px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-4
+{
+background:url('css-sprite-combined.png') -450px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-5
+{
+background:url('css-sprite-combined.png') -600px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-6
+{
+background:url('css-sprite-combined.png') -750px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-s1
+{
+background:url('css-sprite-combined.png') -900px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-s2
+{
+background:url('css-sprite-combined.png') -1050px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-s3
+{
+background:url('css-sprite-combined.png') -1200px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-s4
+{
+background:url('css-sprite-combined.png') -1350px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-s5
+{
+background:url('css-sprite-combined.png') -1500px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+
+.css-sprite-s6
+{
+background:url('css-sprite-combined.png') -1650px -0px;
+width:150px;height:150px;
+display:inline-block;
+}
+

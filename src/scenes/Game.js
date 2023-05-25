@@ -13,7 +13,6 @@ export default class MainScene extends Phaser.Scene {
     this.reels = [];
     this.imageSize = 0;
     this.rows = 4; // rows to thow
-    this.reelsX = 20;
     this.reelsY = 20;
     this.reelsWidthPercent = 0.8;
     this.reelsDisplay = "space-evenly"; // space-around space-between space-evenly
@@ -84,6 +83,8 @@ export default class MainScene extends Phaser.Scene {
     if (this.reelsEnded === this.reelsConfig.length) {
       console.log("reelEnded", this.reelsEnded);
       this.status = "ready";
+      this.reels.forEach(reel => reel.showWinnerAnimations());
+      
     }
   }
   prepareLayout() {
@@ -198,6 +199,39 @@ export default class MainScene extends Phaser.Scene {
     this.events.emit("scene-awake");
 
 
+
+
+
+
+
+
+
+
+/*     const config = {
+      key: "racoonAnimation",
+      frames: this.anims.generateFrameNumbers("racoonSprite", {
+        start: 0,
+        end: 13,
+        first: 0,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    };
+
+    this.anims.create(config);
+
+    const racoon = this.add
+      .sprite(
+        this.imageSize / 2,
+        this.imageSize / 2 + this.imageSize ,
+        "racoonSprite"
+      )
+      .play("racoonAnimation");
+ */
+      
+
+  
+
   }
 
   create() {
@@ -242,7 +276,8 @@ export default class MainScene extends Phaser.Scene {
   preload() {
 
 
-    this.load.spritesheet('starSprite', 'src/assets/sprite-coin.png', { frameWidth: 150, frameHeight: 150 });
+    this.load.spritesheet('starSprite', 'src/assets/sprite-coins-all.png', { frameWidth: 150, frameHeight: 150 });
+    this.load.spritesheet('racoonSprite', 'src/assets/sprite-racoon.png', { frameWidth: 228, frameHeight: 300 });
 
     this.load.image("background", "src/assets/images/bg.jpg");
     this.load.image("backgroundCenter", "src/assets/images/bg-center.jpg");
