@@ -1,77 +1,81 @@
 import symbolsSpriteJson from "../assets/symbols-sprite.json";
+import resourcesSpriteJson from "../assets/resources-sprite.json";
 import Reel from "../components/Reel.js";
 import Button from "../components/Button.js";
+import { symbolsConfig, reelsLayoutConfig } from "../config/Config.js";
+
+import { fakeWinners } from "../fake/Fake.js";
+import { getDecimal } from "../utils/mainSceneUtils";
 
 export default class MainScene extends Phaser.Scene {
   constructor() {
     super({
       key: "MainScene",
     });
-
+    this.button = null;
+    this.stopped = false;
+    this.gamesCount = 0;
     this.background = null;
     this.backgroundCenter = null;
     this.reels = [];
     this.imageSize = 0;
-    this.rows = 4; // rows to thow
-    this.reelsY = 20;
-    this.reelsWidthPercent = 0.8;
-    this.reelsDisplay = "space-evenly"; // space-around space-between space-evenly
-    this.reelsSpacing = 0.1;
+    reelsLayoutConfig.rows = 4; // rows to thow
+    this.reelsDisplay = reelsLayoutConfig.display;
     this.layout = {
       reelsRect: {},
     };
     this.buttons = {
       start: null,
-      stop: null
+      stop: null,
     };
-
-    this.minBottomSpace = 400;
 
     this.reelsEnded = 0;
 
     this.reelsConfig = [
       {
-        rows: this.rows, // rows shown
-        yBounce: 0.5, // y distance to do the bounce back
         symbols: [
-          "apple",
-          "lemon",
-          "coin",
-          "blueberries",
-          "cherry",
-          "strawberry",
-          "coin",
-          "grapes",
-        ], // list of symbol names for the reel previously loaded
-        winnerSymbols: ["lemon", "orange", "coin", "watermelon"], // list of winner symbol names previously loaded
+          { texture: "apple" },
+          { texture: "lemon" },
+          { texture: "coin" },
+          { texture: "blueberries" },
+          { texture: "cherry" },
+          { texture: "strawberry" },
+          { texture: "coin" },
+          { texture: "grapes" },
+        ],
       },
       {
-        rows: this.rows, // rows shown
-        yBounce: 0.5, // y distance to do the bounce back
         symbols: [
-          "blueberries",
-          "coin",
-          "lemon",
-          "apple",
-          "coconut",
-          "coin",
-          "cherry",
-        ], // list of symbol names for the reel previously loaded
-        winnerSymbols: ["watermelon", "coin", "orange", "lemon"], // list of winner symbol names previously loaded
+          { texture: "blueberries" },
+          { texture: "coin" },
+          { texture: "lemon" },
+          { texture: "apple" },
+          { texture: "coconut" },
+          { texture: "coin" },
+          { texture: "cherry" },
+        ],
       },
       {
-        rows: this.rows, // rows shown
-        yBounce: 0.5, // y distance to do the bounce back
         symbols: [
-          "coin",
-          "strawberry",
-          "coin",
-          "apple",
-          "coconut",
-          "banana",
-          "cherry",
-        ], // list of symbol names for the reel previously loaded
-        winnerSymbols: ["coin", "strawberry", "orange", "lemon"], // list of winner symbol names previously loaded
+          { texture: "coin" },
+          { texture: "strawberry" },
+          { texture: "coin" },
+          { texture: "apple" },
+          { texture: "coconut" },
+          { texture: "banana" },
+          { texture: "cherry" },
+        ],
+      },
+      {
+        symbols: [
+          { texture: "blueberries" },
+          { texture: "strawberry" },
+          { texture: "cherry" },
+          { texture: "coin" },
+          { texture: "coconut" },
+          { texture: "apple" },
+          { texture: "lemon" },
+        ],
       },
     ];
 
@@ -82,22 +86,26 @@ export default class MainScene extends Phaser.Scene {
     this.reelsEnded++;
     if (this.reelsEnded === this.reelsConfig.length) {
       console.log("reelEnded", this.reelsEnded);
+      this.gamesCount++;
+      this.drawButton("buttonGreen");
       this.status = "ready";
-      this.reels.forEach(reel => reel.showWinnerAnimations());
-      
+      this.reels.forEach((reel) => reel.showWinnerAnimations());
     }
   }
   prepareLayout() {
     const { width, height } = this.sys.game.canvas;
 
-    const reelWidth = width * this.reelsWidthPercent;
+    const reelWidth = width * reelsLayoutConfig.container.windowPercentWidth;
     this.imageSize = reelWidth / this.reelsConfig.length;
 
-    const reelHeight = this.rows * this.imageSize;
+    const reelHeight = reelsLayoutConfig.rows * this.imageSize;
 
-    if (height - reelHeight < this.minBottomSpace) {
-      this.imageSize = (height - this.minBottomSpace) / this.rows;
+    if (height - reelHeight < reelsLayoutConfig.marginBottomMin) {
+      this.imageSize =
+        (height - reelsLayoutConfig.marginBottomMin) / reelsLayoutConfig.rows;
     }
+
+    this.imageSize = this.imageSize;
 
     let spaceX =
       (reelWidth - this.imageSize * this.reelsConfig.length) /
@@ -111,11 +119,13 @@ export default class MainScene extends Phaser.Scene {
       spaceX = (reelWidth - this.imageSize * this.reelsConfig.length) / 2;
     }
 
+    spaceX = spaceX;
+
     this.layout.reelsRect = {
-      x: (width * (1 - this.reelsWidthPercent)) / 2,
-      y: this.reelsY,
+      x: (width * (1 - reelsLayoutConfig.container.windowPercentWidth)) / 2,
+      y: reelsLayoutConfig.container.y,
       width: reelWidth,
-      height: this.rows * this.imageSize,
+      height: reelsLayoutConfig.rows * this.imageSize,
       spaceX: spaceX,
     };
   }
@@ -136,7 +146,7 @@ export default class MainScene extends Phaser.Scene {
 
     this.backgroundCenter = this.add.tileSprite(
       width / 2,
-      this.layout.reelsRect.height / 2 + this.reelsY,
+      this.layout.reelsRect.height / 2 + reelsLayoutConfig.container.y,
       this.layout.reelsRect.width,
       this.layout.reelsRect.height,
       "backgroundCenter"
@@ -153,61 +163,24 @@ export default class MainScene extends Phaser.Scene {
 
       const container = this.add.container(
         this.layout.reelsRect.x + this.imageSize * index + spaceX,
-        this.reelsY
+        reelsLayoutConfig.container.y
       );
 
-      return new Reel(container, reel);
+      return new Reel(container, reel, index);
     });
 
     this.scale.on("resize", this.resize, this);
-
-    this.buttons.start = new Button(
-      width / 2,
-      this.layout.reelsRect.height + this.reelsY + 30,
-      "Start Spin",
-      this,
-      () => {
-        if (this.status === "ready") {
-          this.reelsEnded = 0;
-          this.status = "spinning";
-          this.spinningLoop.play();
-          this.reels.forEach((reel, index) => {
-            reel.startSpin(500 * index);
-          });
-        }
-      }
-    );
-    this.buttons.stop = new Button(
-      width / 2,
-      this.layout.reelsRect.height + this.reelsY + 70,
-      "Stop Spin",
-      this,
-      () => {
-        if (this.status === "spinning") {
-          this.spinningLoop.stop();
-          this.reels.forEach((reel, index) => {
-            reel.stopSpin(500 * index);
-          });
-        }
-      }
-    );
 
     this.spinningLoop = this.sound.add("spinningLoop", {
       loop: true,
       volume: 0.1,
     });
+
+    this.drawButton("buttonGreen");
+
     this.events.emit("scene-awake");
 
-
-
-
-
-
-
-
-
-
-/*     const config = {
+    /*     const config = {
       key: "racoonAnimation",
       frames: this.anims.generateFrameNumbers("racoonSprite", {
         start: 0,
@@ -228,10 +201,58 @@ export default class MainScene extends Phaser.Scene {
       )
       .play("racoonAnimation");
  */
-      
+  }
 
-  
+  drawButton(buttonId) {
+    if (this.button) {
+      this.button.destroy();
+    }
+    const { width, height } = this.sys.game.canvas;
+    this.button = this.add.image(
+      width / 2,
+      this.layout.reelsRect.height +
+        this.layout.reelsRect.y +
+        (height - this.layout.reelsRect.height + this.layout.reelsRect.y) / 2,
+      "resources",
+      buttonId
+    );
+    this.button.displayWidth = width / 4;
+    this.button.displayHeight = width / 4;
 
+    this.button
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        console.log("pointerdown");
+        if (this.status === "spinning" && !this.stopped) {
+          console.log("this.status === spinning && !this.stopped");
+          this.stopped = true;
+          this.drawButton("buttonYellow");
+          this.spinningLoop.stop();
+          this.reels.forEach((reel, index) => {
+            reel.stopSpin(500 * index);
+          });
+        } else if (this.status === "ready") {
+          console.log("this.status === ready");
+          this.stopped = false;
+          this.drawButton("buttonRed");
+          this.reelsEnded = 0;
+          this.status = "spinning";
+          this.spinningLoop.play();
+          this.reels.forEach((reel, index) => {
+            reel.startSpin(
+              fakeWinners[this.gamesCount % 2][index],
+              500 * index
+            );
+          });
+        }
+      })
+      .on("pointerup", () => {
+        if (this.status === "spinning" && this.stopped) {
+          this.drawButton("buttonYellow");
+        } else {
+          this.drawButton("buttonRed");
+        }
+      });
   }
 
   create() {
@@ -254,7 +275,8 @@ export default class MainScene extends Phaser.Scene {
     this.background.height = height;
 
     this.backgroundCenter.x = width / 2;
-    this.backgroundCenter.y = this.layout.reelsRect.height / 2 + this.reelsY;
+    this.backgroundCenter.y =
+      this.layout.reelsRect.height / 2 + reelsLayoutConfig.container.y;
     this.backgroundCenter.width = this.layout.reelsRect.width;
     this.backgroundCenter.height = this.layout.reelsRect.height;
 
@@ -267,17 +289,31 @@ export default class MainScene extends Phaser.Scene {
         spaceX = this.layout.reelsRect.spaceX;
       }
       console.log("reel, index", reel.x, reel.y, reel, index);
-      reel.setContainerPosition(this.layout.reelsRect.x + this.imageSize * index + spaceX, this.reelsY);
+      reel.setContainerPosition(
+        this.layout.reelsRect.x + this.imageSize * index + spaceX,
+        reelsLayoutConfig.container.y
+      );
       reel.resize();
     });
 
+    this.button.x = width / 2;
+    this.button.y =
+      height -
+      reelsLayoutConfig.marginBottomMin +
+      reelsLayoutConfig.marginBottomMin / 2;
+    this.button.displayWidth = width / 4;
+    this.button.displayHeight = width / 4;
   }
 
   preload() {
-
-
-    this.load.spritesheet('starSprite', 'src/assets/sprite-coins-all.png', { frameWidth: 150, frameHeight: 150 });
-    this.load.spritesheet('racoonSprite', 'src/assets/sprite-racoon.png', { frameWidth: 228, frameHeight: 300 });
+    this.load.spritesheet("coinsSprite", "src/assets/sprite-coins-all.png", {
+      frameWidth: 150,
+      frameHeight: 150,
+    });
+    this.load.spritesheet("racoonSprite", "src/assets/sprite-racoon.png", {
+      frameWidth: 228,
+      frameHeight: 300,
+    });
 
     this.load.image("background", "src/assets/images/bg.jpg");
     this.load.image("backgroundCenter", "src/assets/images/bg-center.jpg");
@@ -288,6 +324,11 @@ export default class MainScene extends Phaser.Scene {
       "symbols",
       "src/assets/symbols3-sprite.png",
       symbolsSpriteJson
+    );
+    this.load.atlas(
+      "resources",
+      "src/assets/sprite-resources.png",
+      resourcesSpriteJson
     );
   }
 }

@@ -1,23 +1,29 @@
 import UserComponent from "./UserComponent";
+import {
+  symbolsConfig,
+  reelTweenConfig,
+  reelsLayoutConfig,
+} from "../config/Config.js";
 
 export default class Reel extends UserComponent {
-  constructor(gameObject, params) {
+  constructor(gameObject, params, index) {
     super(gameObject);
 
+    this.index = index;
     this.first = true;
     this.params = params;
-    this.tweenMainDuration = 3000;
-    this.tweenBounceDuration = 500;
-    this.tweenAccelerateDuration = 500;
-    this.tweenDecelerateDuration = 700;
     this.gameObject = gameObject;
     this.tweenObject = {
       val: 0,
     };
+
+    this.winnerSymbols = [];
     this.boing = null;
     this.startSound = null;
-    this.tweenAccelerateVal = this.scene.imageSize * 4;
-    this.spins = 15;
+    this.tweenAccelerateVal =
+      this.scene.imageSize *
+      reelsLayoutConfig.rows *
+      reelTweenConfig.accelerate.spins;
     this.anims = [];
     this.status = "stop";
     this.containerMain = null;
@@ -25,7 +31,9 @@ export default class Reel extends UserComponent {
     this.containerClone = null;
     this.containerCloneImgs = null;
     this.containerWinner = null;
-    this.containerWinnerImgs = null;
+    this.containerWinnerImgs = [];
+    this.containerWinnerBorders = null;
+    this.containerWinnerBordersShapes = null;
     gameObject["__ReelContainer"] = this;
   }
 
@@ -37,7 +45,7 @@ export default class Reel extends UserComponent {
   /** @type {Phaser.GameObjects.Container} */
   gameObject;
 
-  /* START-USER-CODE */
+  /* Once created */
 
   awake() {
     this.boing = this.scene.sound.add("boing", { loop: false });
@@ -46,46 +54,56 @@ export default class Reel extends UserComponent {
     this._displayReel();
   }
 
+  /*********************************/
+  /* Reel layout */
+  /*********************************/
   _displayReel = () => {
     this.containerMain = this.scene.add.container(0, 0);
     this.containerClone = this.scene.add.container(
       0,
       -this.params.symbols.length * this.scene.imageSize
     );
+
     this.containerWinner = this.scene.add.container(
       0,
       -this.params.symbols.length * this.scene.imageSize
     );
+    this.containerWinnerBorders = this.scene.add.container(0, 0);
+
     this.gameObject.add(this.containerMain);
     this.gameObject.add(this.containerClone);
     this.gameObject.add(this.containerWinner);
+    this.gameObject.add(this.containerWinnerBorders);
 
-    this.containerMainImgs = this.params.symbols.map((texture, index) => {
+    // Fill the main container with symbols
+    this.containerMainImgs = this.params.symbols.map((obj, index) => {
       const img = this.scene.add.image(
         this.scene.imageSize / 2,
         this.scene.imageSize / 2 + this.scene.imageSize * index,
         "symbols",
-        texture
+        obj.texture
       );
       img.displayWidth = this.scene.imageSize;
       img.displayHeight = this.scene.imageSize;
 
       this.containerMain.add(img);
-      console.log(index , this.params.rows);
-      if (index < this.params.rows) {
-        img.setInteractive({ useHandCursor: true })
+      if (index < reelsLayoutConfig.rows) {
+        /*      img
+          .setInteractive({ useHandCursor: true })
           .on("pointerdown", () => console.log("pointerdown", img))
           .on("pointerover", () => console.log("pointerover", img))
-          .on("pointerout", () => console.log("pointerout", img));
+          .on("pointerout", () => console.log("pointerout", img)); */
       }
       return img;
     });
-    this.containerCloneImgs = this.params.symbols.map((texture, index) => {
+
+    // Fill the clone container  with same symbols
+    this.containerCloneImgs = this.params.symbols.map((obj, index) => {
       const img = this.scene.add.image(
         this.scene.imageSize / 2,
         this.scene.imageSize / 2 + this.scene.imageSize * index,
         "symbols",
-        texture
+        obj.texture
       );
       img.displayWidth = this.scene.imageSize;
       img.displayHeight = this.scene.imageSize;
@@ -94,47 +112,250 @@ export default class Reel extends UserComponent {
 
       return img;
     });
-    this.containerWinnerImgs = this.params.winnerSymbols.map(
-      (texture, index) => {
-        const img = this.scene.add.image(
-          this.scene.imageSize / 2,
-          this.scene.imageSize / 2 + this.scene.imageSize * index,
-          "symbols",
-          texture
-        );
-        img.displayWidth = this.scene.imageSize;
-        img.displayHeight = this.scene.imageSize;
-
-        this.containerWinner.add(img);
-
-        return img;
-      }
-    );
 
     this._showIdleAnimations();
     // CREATE MASK
     const shape = this.scene.make.graphics();
 
+    const { width } = this.scene.sys.game.canvas;
+
     shape.fillStyle(0xffffff);
     shape.fillRect(
-      this.gameObject.x,
+      0,
       this.gameObject.y,
-      this.scene.imageSize,
-      this.params.rows * this.scene.imageSize
+      width,
+      reelsLayoutConfig.rows * this.scene.imageSize
     );
     const mask = shape.createGeometryMask();
     this.gameObject.setMask(mask);
   };
 
+  /* Fill winner container */
+  _addWinnerSymbols = () => {
+    this.containerWinnerImgs.forEach((elm) => elm.destroy());
+    this.containerWinnerImgs = [];
+
+    this.containerWinnerImgs = this.winnerSymbols.map((obj, index) => {
+      const img = this.scene.add.image(
+        this.scene.imageSize / 2,
+        this.scene.imageSize / 2 + this.scene.imageSize * index,
+        "symbols",
+        obj.texture
+      );
+      img.displayWidth = this.scene.imageSize;
+      img.displayHeight = this.scene.imageSize;
+
+      this.containerWinner.add(img);
+
+      return img;
+    });
+  };
+
+  /*********************************/
+  /* Tweening Methods*/
+  /*********************************/
+
+  /* Reel acceleration tween */
+  _tweenAccelerate = () => {
+    console.log("_tweenAccelerate");
+    const tween = this.scene.tweens.add({
+      targets: this.tweenObject,
+      val: this.tweenAccelerateVal,
+      ease: "Expo.easeIn",
+      duration: reelTweenConfig.accelerate.duration,
+      onUpdate: (tween, target) => {
+        this.containerMain.y =
+          target.val % (this.params.symbols.length * this.scene.imageSize);
+        this.containerClone.y =
+          this.containerMain.y -
+          this.params.symbols.length * this.scene.imageSize;
+
+        this._setVisibility();
+      },
+    });
+
+    tween.on("complete", () => {
+      this._tweenMain();
+    });
+  };
+
+  /* Reel linear tween */
+  _tweenMain = () => {
+    console.log("_tweenMain");
+    const tween = this.scene.tweens.add({
+      targets: this.tweenObject,
+      val:
+        this.scene.imageSize *
+        this.params.symbols.length *
+        reelTweenConfig.main.spins,
+      ease: "Linear",
+      duration: reelTweenConfig.main.duration,
+      onUpdate: (tween, target) => {
+        // Position Main Container
+        this.containerMain.y =
+          target.val % (this.params.symbols.length * this.scene.imageSize);
+        // Position Clone Container at the topof Main Container
+        this.containerClone.y =
+          this.containerMain.y -
+          this.params.symbols.length * this.scene.imageSize;
+
+        this._setVisibility();
+
+        if (this.status === "stop") {
+          tween.stop();
+
+          this._tweenDecelerate();
+        }
+      },
+    });
+    tween.on("complete", () => {
+      this._tweenDecelerate();
+    });
+    tween.on("start", () => {
+      this.startSound.play();
+    });
+  };
+
+  /* Reel deceleration tween */
+  _tweenDecelerate = () => {
+    const decelerateVal =
+      Math.ceil(
+        this.tweenObject.val /
+          (this.scene.imageSize * this.params.symbols.length)
+      ) *
+        (this.scene.imageSize * this.params.symbols.length) +
+      this.scene.imageSize * this.params.symbols.length +
+      reelTweenConfig.bounce.imagePercentHeight * this.scene.imageSize;
+    const tween = this.scene.tweens.add({
+      targets: this.tweenObject,
+      val: decelerateVal,
+      ease: "Quad.easeOut",
+      duration: reelTweenConfig.decelerate.duration,
+      onUpdate: (tween, target) => {
+        // Position Main Container
+        this.containerMain.y =
+          target.val % (this.params.symbols.length * this.scene.imageSize);
+        // Position Clone Container at the topof Main Container
+        this.containerClone.y =
+          this.containerMain.y -
+          this.params.symbols.length * this.scene.imageSize;
+
+        // If the difference between the current and final values is less or equal than the height of the symbols reel plus the extra bounce y
+        if (
+          decelerateVal - target.val <=
+          this.params.symbols.length * this.scene.imageSize +
+            reelTweenConfig.bounce.imagePercentHeight * this.scene.imageSize
+        ) {
+          // If the difference between the current and final values is higher the extra bounce y
+          if (
+            decelerateVal - target.val >
+            reelTweenConfig.bounce.imagePercentHeight * this.scene.imageSize
+          ) {
+            this.containerWinner.y = this.containerClone.y;
+            for (let i = 0; i < this.winnerSymbols.length; i++) {
+              this.containerCloneImgs[i].alpha = 0;
+            }
+          } else {
+            this.containerWinner.y = this.containerMain.y;
+            for (let i = 0; i < this.winnerSymbols.length; i++) {
+              this.containerMainImgs[i].alpha = 0;
+            }
+            this.containerCloneImgs.forEach((element) => {
+              element.alpha = 1;
+            });
+          }
+        }
+      },
+    });
+
+    tween.on("complete", () => {
+      console.log("begin bounce");
+
+      this.containerWinner.y = this.containerMain.y;
+
+      this._tweenBounce();
+      this.boing.play();
+    });
+  };
+
+  /* Reel bounce tween */
+  _tweenBounce = () => {
+    const finalVal =
+      this.tweenObject.val -
+      reelTweenConfig.bounce.imagePercentHeight * this.scene.imageSize;
+
+    const tween = this.scene.tweens.add({
+      targets: this.tweenObject,
+      val: finalVal + reelTweenConfig.bounce.finalYCorrection,
+      ease: "Bounce.Out",
+      duration: reelTweenConfig.bounce.duration,
+      onUpdate: (tween, target) => {
+        this.containerMain.y =
+          target.val % (this.params.symbols.length * this.scene.imageSize);
+
+        this.containerClone.y =
+          this.containerMain.y -
+          this.params.symbols.length * this.scene.imageSize;
+
+        if (
+          finalVal - target.val <=
+          this.params.symbols.length * this.scene.imageSize +
+            reelTweenConfig.bounce.imagePercentHeight * this.scene.imageSize
+        ) {
+          this.containerWinner.y = this.containerMain.y;
+          this.containerMain.alpha = 0;
+          this.containerClone.alpha = 1;
+        }
+      },
+    });
+
+    tween.on("complete", () => {
+      console.log("end");
+
+      this.first = false;
+
+      this.anims = [];
+
+      this.scene.reelEnded();
+    });
+  };
+
+  /* Set the visibility of container and symbols */
+  _setVisibility = () => {
+    if (
+      !this.first &&
+      this.containerWinner.y < reelsLayoutConfig.rows * this.scene.imageSize
+    ) {
+      this.containerWinner.y = this.containerMain.y;
+    }
+
+    if (
+      !this.first &&
+      this.containerWinner.y >= reelsLayoutConfig.rows * this.scene.imageSize &&
+      this.containerMain.alpha === 0
+    ) {
+      this.containerMain.alpha = 1;
+      for (let i = 0; i < this.containerMainImgs.length; i++) {
+        this.containerMainImgs[i].alpha = 1;
+      }
+
+      this._addWinnerSymbols();
+    }
+  };
+
+  /*********************************/
+  /* Symbols animations */
+  /*********************************/
   _showIdleAnimations = (winners = false) => {
-    for (let i = 0; i < this.params.rows; i++) {
-      if (
-        (winners && this.params.winnerSymbols[i] === "coin") ||
-        (!winners && this.params.symbols[i] === "coin")
-      ) {
+    for (let i = 0; i < reelsLayoutConfig.rows; i++) {
+      const key = winners
+        ? this.winnerSymbols[i].texture
+        : this.params.symbols[i].texture;
+      const symbol = symbolsConfig.get(key);
+      if (symbol.idleAnimation) {
         const config = {
-          key: "starAnimation",
-          frames: this.scene.anims.generateFrameNumbers("starSprite", {
+          key: symbol.idleAnimation,
+          frames: this.scene.anims.generateFrameNumbers("coinsSprite", {
             start: 0,
             end: 5,
             first: 0,
@@ -150,26 +371,112 @@ export default class Reel extends UserComponent {
           .sprite(
             this.scene.imageSize / 2,
             this.scene.imageSize / 2 + this.scene.imageSize * i,
-            "starSprite"
+            "coinsSprite"
           )
-          .play("starAnimation");
+          .play(symbol.idleAnimation);
         this.anims[i].displayWidth = this.scene.imageSize;
         this.anims[i].displayHeight = this.scene.imageSize;
-        /*     this.anims[i].on("animationcomplete", () => {
-          console.log("animationcomplete");
-        }); */
+
+        this.gameObject.add(this.anims[i]);
+      }
+    }
+  };
+  showWinnerAnimations = () => {
+    this.showWinnerBorders();
+    for (let i = 0; i < reelsLayoutConfig.rows; i++) {
+      const key = this.winnerSymbols[i].texture;
+      const symbol = symbolsConfig.get(key);
+
+      if (symbol.winnerAnimation && this.winnerSymbols[i].winner) {
+        const config = {
+          key: symbol.winnerAnimation,
+          frames: this.scene.anims.generateFrameNumbers("coinsSprite", {
+            start: 6,
+            end: 11,
+            first: 6,
+          }),
+          frameRate: 15,
+          repeat: 3,
+        };
+
+        this.scene.anims.create(config);
+
+        this.anims[i] = this.scene.add
+          .sprite(
+            this.scene.imageSize / 2,
+            this.scene.imageSize / 2 + this.scene.imageSize * i,
+            "coinsSprite"
+          )
+          .play(symbol.winnerAnimation);
+
+        this.containerWinnerImgs[i].alpha = 0;
+
+        this.anims[i].displayWidth = this.scene.imageSize;
+        this.anims[i].displayHeight = this.scene.imageSize;
+
+        const index = i;
+        this.anims[i].on("animationcomplete", () => {
+          console.log("animationcomplete", index);
+
+          this.containerWinnerBordersShapes.forEach((elm) => elm.destroy());
+
+          this.containerWinnerImgs[index].alpha = 1;
+          this.anims[index].destroy();
+          this._showIdleAnimations(true);
+        });
         this.gameObject.add(this.anims[i]);
       }
     }
   };
 
-  startSpin = (delay = 0) => {
+  showWinnerBorders = () => {
+    this.containerWinnerBordersShapes = [];
+    for (let i = 0; i < reelsLayoutConfig.rows; i++) {
+      if (this.winnerSymbols[i].winner) {
+        const shape = this.scene.make.graphics();
+        shape.lineStyle(5, 0xff00ff, 1.0);
+        shape.strokeRect(
+          0,
+          this.scene.imageSize * i,
+          this.scene.imageSize,
+          this.scene.imageSize
+        );
+        this.containerWinnerBordersShapes.push(shape);
+        this.containerWinnerBorders.add(shape);
+      }
+    }
+  };
+
+  /*********************************/
+  /* Public methods */
+  /*********************************/
+
+  startSpin = (winnerSymbols, delay = 0) => {
     this.containerMain.y = 0;
     this.containerClone.y = -this.params.symbols.length * this.scene.imageSize;
     this.status = "start";
     this.tweenObject = {
       val: 0,
     };
+    this.winnerSymbols = winnerSymbols;
+
+    // Destroy winner borders
+    if (this.containerWinnerBordersShapes) {
+      this.containerWinnerBordersShapes.forEach((elm) => elm.destroy());
+    }
+
+    // Show last winner images
+    if (this.containerWinnerImgs) {
+      this.containerWinnerImgs.forEach((elm) => (elm.alpha = 1));
+    }
+    // Destroy animations
+    if (this.anims) {
+      this.anims.forEach((elm) => elm.destroy());
+    }
+
+    if (this.first) {
+      this._addWinnerSymbols();
+    }
 
     this.anims.forEach((elm) => elm.destroy());
 
@@ -183,6 +490,10 @@ export default class Reel extends UserComponent {
     this.gameObject.x = x;
     this.gameObject.y = y;
   };
+
+  /*********************************/
+  /* Resize method */
+  /*********************************/
   resize = () => {
     this.containerClone.y = -this.params.symbols.length * this.scene.imageSize;
     this.containerMainImgs.forEach((img, index) => {
@@ -213,251 +524,19 @@ export default class Reel extends UserComponent {
       this.gameObject.x,
       this.gameObject.y,
       this.scene.imageSize,
-      this.params.rows * this.scene.imageSize
+      reelsLayoutConfig.rows * this.scene.imageSize
     );
     const mask = shape.createGeometryMask();
     this.gameObject.setMask(mask);
-  };
 
-  _tweenAccelerate = () => {
-    const tween = this.scene.tweens.add({
-      targets: this.tweenObject,
-      val: this.tweenAccelerateVal,
-      ease: "Expo.easeIn",
-      duration: this.tweenAccelerateDuration,
-      onUpdate: (tween, target) => {
-        this.containerMain.y =
-          target.val % (this.params.symbols.length * this.scene.imageSize);
-        this.containerClone.y =
-          this.containerMain.y -
-          this.params.symbols.length * this.scene.imageSize;
+    this.anims.forEach((elm, index) => {
+      elm.x = this.scene.imageSize / 2;
+      elm.y = this.scene.imageSize / 2 + this.scene.imageSize * index;
 
-        if (
-          !this.first &&
-          this.containerWinner.y < this.params.rows * this.scene.imageSize
-        ) {
-          this.containerWinner.y = this.containerMain.y;
-        }
-
-        if (
-          !this.first &&
-          this.containerWinner.y >= this.params.rows * this.scene.imageSize
-        ) {
-          this.containerMain.alpha = 1;
-          this.containerClone.alpha = 1;
-          for (let i = 0; i < this.containerMainImgs.length; i++) {
-            this.containerMainImgs[i].alpha = 1;
-            this.containerCloneImgs[i].alpha = 1;
-          }
-        }
-      },
-    });
-
-    tween.on("complete", () => {
-      this._tweenMain();
+      elm.displayWidth = this.scene.imageSize;
+      elm.displayHeight = this.scene.imageSize;
     });
   };
 
-  _tweenMain = () => {
-    const tween = this.scene.tweens.add({
-      targets: this.tweenObject,
-      val: this.scene.imageSize * this.params.symbols.length * this.spins,
-      ease: "Linear",
-      duration: this.tweenMainDuration,
-      onUpdate: (tween, target) => {
-        // Position Main Container
-        this.containerMain.y =
-          target.val % (this.params.symbols.length * this.scene.imageSize);
-        // Position Clone Container at the topof Main Container
-        this.containerClone.y =
-          this.containerMain.y -
-          this.params.symbols.length * this.scene.imageSize;
-
-        if (
-          !this.first &&
-          this.containerWinner.y < this.params.rows * this.scene.imageSize
-        ) {
-          this.containerWinner.y = this.containerMain.y;
-        }
-
-        if (
-          !this.first &&
-          this.containerWinner.y >= this.params.rows * this.scene.imageSize
-        ) {
-          this.containerMain.alpha = 1;
-          this.containerClone.alpha = 1;
-          for (let i = 0; i < this.containerMainImgs.length; i++) {
-            this.containerMainImgs[i].alpha = 1;
-            this.containerCloneImgs[i].alpha = 1;
-          }
-        }
-
-        if (this.status === "stop") {
-          tween.stop();
-
-          this._tweenDecelerate();
-        }
-      },
-    });
-    tween.on("complete", () => {
-      this._tweenDecelerate();
-    });
-    tween.on("start", () => {
-      this.startSound.play();
-    });
-  };
-
-  _tweenDecelerate = () => {
-    const decelerateVal =
-      Math.ceil(
-        this.tweenObject.val /
-          (this.scene.imageSize * this.params.symbols.length)
-      ) *
-        (this.scene.imageSize * this.params.symbols.length) +
-      this.scene.imageSize * this.params.symbols.length +
-      this.params.yBounce * this.scene.imageSize;
-    const tween = this.scene.tweens.add({
-      targets: this.tweenObject,
-      val: decelerateVal,
-      ease: "Quad.easeOut",
-      duration: this.tweenDecelerateDuration,
-      onUpdate: (tween, target) => {
-        // Position Main Container
-        this.containerMain.y =
-          target.val % (this.params.symbols.length * this.scene.imageSize);
-        // Position Clone Container at the topof Main Container
-        this.containerClone.y =
-          this.containerMain.y -
-          this.params.symbols.length * this.scene.imageSize;
-
-        // If the difference between the current and final values is less or equal than the height of the symbols reel plus the extra bounce y
-        if (
-          decelerateVal - target.val <=
-          this.params.symbols.length * this.scene.imageSize +
-            this.params.yBounce * this.scene.imageSize
-        ) {
-          // If the difference between the current and final values is higher the extra bounce y
-          if (
-            decelerateVal - target.val >
-            this.params.yBounce * this.scene.imageSize
-          ) {
-            this.containerWinner.y = this.containerClone.y;
-            for (let i = 0; i < this.params.winnerSymbols.length; i++) {
-              this.containerCloneImgs[i].alpha = 0;
-            }
-          } else {
-            this.containerWinner.y = this.containerMain.y;
-            for (let i = 0; i < this.params.winnerSymbols.length; i++) {
-              this.containerMainImgs[i].alpha = 0;
-            }
-            this.containerCloneImgs.forEach((element) => {
-              element.alpha = 1;
-            });
-          }
-        }
-      },
-    });
-
-    tween.on("complete", () => {
-      console.log("begin bounce");
-      this.containerWinner.y = this.containerMain.y;
-
-      this.boing.play();
-      this.tweenBounce();
-    });
-  };
-
-  tweenBounce = () => {
-    const finalVal =
-      this.tweenObject.val - this.params.yBounce * this.scene.imageSize;
-    const tween = this.scene.tweens.add({
-      targets: this.tweenObject,
-      val: finalVal,
-      ease: "Bounce.Out",
-      duration: this.tweenBounceDuration,
-      onUpdate: (tween, target) => {
-        this.containerMain.y =
-          target.val % (this.params.symbols.length * this.scene.imageSize);
-        this.containerClone.y =
-          this.containerMain.y -
-          this.params.symbols.length * this.scene.imageSize;
-
-        if (
-          finalVal - target.val <=
-          this.params.symbols.length * this.scene.imageSize +
-            this.params.yBounce * this.scene.imageSize
-        ) {
-          if (
-            finalVal - target.val >
-            this.params.yBounce * this.scene.imageSize
-          ) {
-            this.containerWinner.y = this.containerClone.y;
-            this.containerClone.alpha = 0;
-          } else {
-            this.containerWinner.y = this.containerMain.y;
-            this.containerMain.alpha = 0;
-            this.containerClone.alpha = 1;
-          }
-        }
-      },
-    });
-
-    tween.on("complete", () => {
-      console.log("end");
-
-      this.first = false;
-
-      this.anims = [];
-
-      this.scene.reelEnded();
-    });
-  };
-
-  showWinnerAnimations = () => {
-    for (let i = 0; i < this.params.rows; i++) {
-      if (this.params.winnerSymbols[i] === "coin") {
-        const config = {
-          key: "starWinnerAnimation",
-          frames: this.scene.anims.generateFrameNumbers("starSprite", {
-            start: 6,
-            end: 11,
-            first: 6,
-          }),
-          frameRate: 15,
-          repeat: 3,
-        };
-
-        this.scene.anims.create(config);
-
-        this.anims[i] = this.scene.add
-          .sprite(
-            this.scene.imageSize / 2,
-            this.scene.imageSize / 2 + this.scene.imageSize * i,
-            "starSprite"
-          )
-          .play("starWinnerAnimation");
-
-        this.containerWinnerImgs[i].alpha = 0;
-
-        this.anims[i].displayWidth = this.scene.imageSize;
-        this.anims[i].displayHeight = this.scene.imageSize;
-
-        const index = i;
-        this.anims[i].on("animationcomplete", () => {
-          console.log("animationcomplete", index);
-          this.containerWinnerImgs[index].alpha = 1;
-          this.anims[index].destroy();
-          this._showIdleAnimations(true);
-        });
-        this.gameObject.add(this.anims[i]);
-      }
-    }
-  };
   update(time, delta) {}
-
-  /* END-USER-CODE */
 }
-
-/* END OF COMPILED CODE */
-
-// You can write more code here
